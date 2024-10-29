@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 
 from paramiko import SFTPClient
 from paramiko.client import SSHClient, AutoAddPolicy
-from subprocess32 import Popen, PIPE
+from subprocess import Popen, PIPE
 
 from obshell.log import logger
 from obshell.pkg import load_rpm_pcakge, ExtractFile
