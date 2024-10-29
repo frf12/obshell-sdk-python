@@ -121,13 +121,14 @@ class SshClient:
             return self._remote_transporter
         if USE_RSYNC is False:
             self._remote_transporter = self._sftp_write_file
-        elif self.config.ip not in self._rsync_cache:
-            self._rsync_cache[self.config.ip] = self.execute('rsync -h')
-
-        if self._rsync_cache[self.config.ip]:
-            self._remote_transporter = self._rsync_write_file
         else:
-            self._remote_transporter = self._sftp_write_file
+            if self.config.ip not in self._rsync_cache:
+                self._rsync_cache[self.config.ip] = bool(self.execute('rsync -h'))
+            if self._rsync_cache[self.config.ip]:
+                self._remote_transporter = self._rsync_write_file
+            else:
+                self._remote_transporter = self._sftp_write_file
+
         return self._remote_transporter
 
     def connect(self):
@@ -324,7 +325,7 @@ def clean_server(client: SshClient, work_dir: str):
             continue
         ret = client.execute('kill -9 `cat %s`' % pid_file)
         if not ret:
-            raise Exception('Failed to kill %s: %s' % (file, ret.stderr))
+            logger.warn('Failed to kill %s(%s): %s' % (client.config.ip, pid_file, ret.stderr))
 
     ret = client.execute('rm -fr %s' % work_dir)
     if not ret:
